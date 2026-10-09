@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Школа Акторів — Керування</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #202124;
+    }
+    header {
+      background: #202124;
+      color: white;
+      padding: 24px 18px;
+    }
+    header h1 { margin: 0 0 8px; font-size: 25px; }
+    header p { margin: 0; color: #d1d5db; }
+    main { padding: 18px; max-width: 800px; margin: auto; }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .number { font-size: 30px; font-weight: bold; margin-top: 8px; }
+    label { display: block; margin: 12px 0 6px; }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 16px;
+    }
+    button {
+      background: #d95d50;
+      color: white;
+      border: 0;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+    .student {
+      border-top: 1px solid #eee;
+      padding: 12px 0;
+    }
+    .muted { color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Школа Акторів</h1>
+    <p>Система керування школою</p>
+  </header>
+  <main>
+    <section class="stats">
+      <div class="card">
+        Учні
+        <div class="number" id="studentCount">0</div>
+      </div>
+      <div class="card">
+        Групи
+        <div class="number" id="groupCount">0</div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Додати учня</h2>
+      <form id="studentForm">
+        <label for="studentName">Ім'я та прізвище учня</label>
+        <input id="studentName" required placeholder="Наприклад, Марія Петренко">
+        <label for="studentGroup">Група</label>
+        <input id="studentGroup" required placeholder="Наприклад, Молодша група">
+        <label for="studentPhone">Телефон батьків</label>
+        <input id="studentPhone" type="tel" placeholder="+380...">
+        <button type="submit">Додати учня</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Список учнів</h2>
+      <div id="studentList">Учнів поки немає.</div>
+      <p class="muted">Це перша тестова версія. Дані зберігаються в цьому браузері.</p>
+    </section>
+  </main>
+  <script>
+    const storageKey = 'actorSchoolStudents';
+    let students = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    function render() {
+      document.getElementById('studentCount').textContent = students.length;
+      document.getElementById('groupCount').textContent =
+        new Set(students.map(s => s.group)).size;
+      const list = document.getElementById('studentList');
+      list.replaceChildren();
+      if (!students.length) {
+        list.textContent = 'Учнів поки немає.';
+        return;
+      }
+      students.forEach((student, index) => {
+        const item = document.createElement('div');
+        item.className = 'student';
+        const name = document.createElement('strong');
+        name.textContent = student.name;
+        item.appendChild(name);
+        const details = document.createElement('p');
+        details.textContent = 'Група: ' + student.group +
+          (student.phone ? ' · Телефон: ' + student.phone : '');
+        item.appendChild(details);
+        const remove = document.createElement('button');
+        remove.textContent = 'Видалити учня';
+        remove.onclick = () => {
+          students.splice(index, 1);
+          localStorage.setItem(storageKey, JSON.stringify(students));
+          render();
+        };
+        item.appendChild(remove);
+        list.appendChild(item);
+      });
+    }
+    document.getElementById('studentForm').addEventListener('submit', event => {
+      event.preventDefault();
+      students.push({
+        name: document.getElementById('studentName').value.trim(),
+        group: document.getElementById('studentGroup').value.trim(),
+        phone: document.getElementById('studentPhone').value.trim()
+      });
+      localStorage.setItem(storageKey, JSON.stringify(students));
+      event.target.reset();
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>
